@@ -1,3 +1,2 @@
 # disk
-disk is a text editor
-also mac only for now
+disk is a text editor and also mac only for now
