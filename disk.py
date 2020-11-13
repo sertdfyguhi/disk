@@ -8,11 +8,14 @@ from tkinter.font import families
 from configparser import ConfigParser
 from os import path, mkdir, remove
 from getpass import getuser
+from random import randint
 
 #variables
 fs = 12
 fc = '#ffffff'
+bg = '#333333'
 font = 'Menlo'
+zoomed = False
 filename = None
 config = ConfigParser()
 user = getuser()
@@ -31,6 +34,7 @@ def setconfig():
   config.set('settings', 'fontsize', str(fs))
   config.set('settings', 'fontcolor', fc)
   config.set('settings', 'font', font)
+  config.set('settings', 'bg', bg)
   with open('/Users/' + user + '/Library/Application Support/disk/config.ini', 'w') as file:
     config.write(file)
 
@@ -38,14 +42,16 @@ def loadconfig():
   global fs
   global fc
   global font
+  global bg
   config.read('/Users/' + user + '/Library/Application Support/disk/config.ini')
   try:
     fontsize = config.get('settings', 'fontsize')
     fc = config.get('settings', 'fontcolor')
     font = config.get('settings', 'font')
+    bg = config.get('settings', 'bg')
     fs = int(fontsize)
   except:
-    setconfig
+    setconfig()
 
 def openfile():
   global filename
@@ -111,22 +117,87 @@ def newfile():
   root.title(filename + ' - disk')
 
 def saveas():
-  filedir = asksaveasfile(mode='w', defaultextension='.txt')
-  text = editor.get(0.0, tk.END)
-  filedir.write(text)
+  try:
+    filedir = asksaveasfile(mode='w', defaultextension='.txt')
+    text = editor.get(0.0, tk.END)
+    filedir.write(text)
+  except:
+    pass
 
 def fontfamilies():
   window = tk.Tk()
   window.resizable(False, False)
-  scrollbar = tk.Scrollbar(window)
-  listbox = tk.Listbox(window, yscrollcommand=scrollbar.set)
-  scrollbar.config(command=listbox.yview)
+  listbox = tk.Listbox(window)
   for ele in [*families()]:
     listbox.insert(tk.END, ele)
-  scrollbar.pack(side=tk.RIGHT)
   listbox.pack()
   window.title('Font families')
   window.mainloop()
+
+def randomnum():
+  window = tk.Tk()
+
+  def rannum():
+    try:
+      e1 = int(entry1.get())
+      e2 = int(entry2.get())
+      editor.insert(tk.END, randint(e1, e2))
+      window.destroy()
+    except:
+      showerror('Error!', 'Min or max cannot be empty, any alphabet or symbol, it can only be a number.')
+
+  entry1 = tk.Entry(window)
+  entry1label = tk.Label(window, text='Min: ')
+  entry2 = tk.Entry(window)
+  entry2label = tk.Label(window, text='Max: ')
+  ok = tk.Button(window, text='OK', command=rannum)
+  cancel = tk.Button(window, text='Cancel', command=window.destroy)
+  entry1label.pack(side=tk.LEFT)
+  entry1.pack(side=tk.LEFT)
+  entry2label.pack(side=tk.LEFT)
+  entry2.pack(side=tk.LEFT)
+  ok.pack(side=tk.LEFT)
+  cancel.pack(side=tk.LEFT)
+  window.title('Random number')
+  window.mainloop()
+
+def changebg():
+  global bg
+  color = askcolor()
+  if not color == (None, None):
+    bg = color[1]
+    editor.config(bg=bg)
+    setconfig()
+
+def copy():
+  try:
+    selected = editor.selection_get()
+    root.clipboard_clear()
+    root.clipboard_append(selected)
+  except:
+    pass
+  root.update()
+
+def paste():
+  try:
+    clipboard = root.clipboard_get()
+    editor.insert(tk.END, clipboard)
+  except:
+    pass
+
+def zoom():
+  global zoomed
+  if zoomed == False:
+    zoomed = True
+    root.state('zoomed')
+  else:
+    zoomed = False
+    root.state('normal')
+
+def lowercase():
+  text = editor.get(0.0, tk.END)
+  editor.delete(0.0, tk.END)
+  editor.insert(0.0, text.lower())
 
 root = tk.Tk()
 root.geometry('550x320')
@@ -149,22 +220,38 @@ fontmenu.add_command(label='Font families', command=fontfamilies)
 fontmenu.add_command(label='Change font size', command=changefontsize)
 fontmenu.add_command(label='Change font color', command=changefontcolor)
 root.config(bg='#333333', menu=menubar)
+#window menu
+winmenu = tk.Menu(menubar)
+winmenu.add_command(label='Minimize', accelerator='cmd+m', command=root.iconify)
+winmenu.add_command(label='Zoom', command=zoom)
 #add menus to pref menu
 prefmenu.add_cascade(label='Font', menu=fontmenu)
+prefmenu.add_command(label='Change background', command=changebg)
 #on delete window quit the app
 root.protocol('WM_DELETE_WINDOW', root.destroy)
 #load configuration
 loadconfig()
 #widgets
-editor = tk.Text(master=root, width=1920, height=1080, bg='#333333', font=(font, fs), highlightbackground='#333333', highlightthickness=0, fg=fc, undo=True, insertbackground='#ffffff')
+editor = tk.Text(master=root, width=1920, height=1080, bg=bg, font=(font, fs), highlightthickness=0, fg=fc, undo=True, insertbackground='#ffffff')
 editor.pack()
 #text menu
 textmenu = tk.Menu(menubar)
+textmenu.add_command(label='Undo', accelerator='cmd+z', command=editor.edit_undo)
+textmenu.add_command(label='Redo', accelerator='cmd+shift+z', command=editor.edit_redo)
+textmenu.add_separator()
+textmenu.add_command(label='Cut', accelerator='cmd+x', command=lambda: editor.event_generate('<<Cut>>'))
+textmenu.add_command(label='Copy', accelerator='cmd+c', command=copy)
+textmenu.add_command(label='Paste', accelerator='cmd+v', command=paste)
+textmenu.add_command(label='Select all', accelerator='cmd+a', command=lambda: editor.tag_add('sel', 0.0, tk.END))
+textmenu.add_separator()
 textmenu.add_command(label='Clear', command=lambda: editor.delete(0.0, tk.END))
+textmenu.add_command(label='Random number', command=randomnum)
+textmenu.add_command(label='Convert lowercase', command=lowercase)
 #adding menus to window menu
 menubar.add_cascade(label='File', menu=filemenu)
 menubar.add_cascade(label='Text', menu=textmenu)
 menubar.add_cascade(label='Preferences', menu=prefmenu)
+menubar.add_cascade(label='Window', menu=winmenu)
 #initalize new file
 newfile()
 root.title(filename + ' - disk')
