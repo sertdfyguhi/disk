@@ -17,7 +17,6 @@ bg = '#333333'
 font = 'Menlo'
 zoomed = False
 filename = None
-fullscreen = False
 config = ConfigParser()
 user = getuser()
 
