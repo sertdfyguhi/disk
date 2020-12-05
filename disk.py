@@ -291,6 +291,5 @@ menubar.add_cascade(label='Preferences', menu=prefmenu)
 menubar.add_cascade(label='Window', menu=winmenu)
 #initalize new file
 newfile()
-root.bind('<F10>', fullscreen())
 root.title(filename + ' - disk')
 root.mainloop()
