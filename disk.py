@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import font
 from tkinter.filedialog import askopenfile, asksaveasfile
 from tkinter.simpledialog import askinteger, askstring
-from tkinter.messagebox import showerror, askokcancel
+from tkinter.messagebox import askyesno, showerror, askokcancel, showinfo
 from tkinter.colorchooser import askcolor
 from tkinter.font import families
 from configparser import ConfigParser
@@ -17,6 +17,7 @@ bg = '#333333'
 font = 'Menlo'
 zoomed = False
 filename = None
+fullscreen = False
 config = ConfigParser()
 user = getuser()
 
@@ -80,7 +81,7 @@ def changefontsize():
   global fs
   fs = askinteger(title='Changing font size', prompt='Change font size to:')
   if not fs == None:
-    editor.config(font=('Menlo', fs))
+    editor.config(font=(font, fs))
     setconfig()
 
 def changefontcolor():
@@ -100,6 +101,20 @@ def changefont():
         editor.config(font=(font, fs))
     setconfig()
 
+def resetconfig():
+  global fc
+  global fs
+  global font
+  global bg
+  yn = askyesno('Reset to default settings', 'Are you sure you want to reset your settings?')
+  if yn == True:
+    fc = '#fff'
+    fs = '12'
+    font = 'Menlo'
+    bg = '#333333'
+    editor.config(font=(font, fs), fg=fc, bg=bg)
+    setconfig()
+
 def savefile():
   global filename
   text = editor.get(0.0, tk.END)
@@ -117,10 +132,16 @@ def newfile():
   root.title(filename + ' - disk')
 
 def saveas():
+  global filename
   try:
     filedir = asksaveasfile(mode='w', defaultextension='.txt')
     text = editor.get(0.0, tk.END)
     filedir.write(text)
+    file = open(filedir.name, 'r')
+    editor.delete(0.0, tk.END)
+    editor.insert(0.0, file.read())
+    filename = file
+    root.title(filename.name + ' - disk')
   except:
     pass
 
@@ -128,8 +149,8 @@ def fontfamilies():
   window = tk.Tk()
   window.resizable(False, False)
   listbox = tk.Listbox(window)
-  for ele in [*families()]:
-    listbox.insert(tk.END, ele)
+  for family in [*families()]:
+    listbox.insert(tk.END, family)
   listbox.pack()
   window.title('Font families')
   window.mainloop()
@@ -158,6 +179,7 @@ def randomnum():
   entry2.pack(side=tk.LEFT)
   ok.pack(side=tk.LEFT)
   cancel.pack(side=tk.LEFT)
+  window.resizable(False, False)
   window.title('Random number')
   window.mainloop()
 
@@ -199,6 +221,19 @@ def lowercase():
   editor.delete(0.0, tk.END)
   editor.insert(0.0, text.lower())
 
+def uppercase():
+  text = editor.get(0.0, tk.END)
+  editor.delete(0.0, tk.END)
+  editor.insert(0.0, text.upper())
+
+def reverse():
+  rtext = editor.get(0.0, tk.END)[::-1]
+  editor.delete(0.0, tk.END)
+  editor.insert(0.0, rtext.replace('\n', '', 1))
+
+def length():
+  showinfo('Length of text', len(editor.get(1.0, tk.END)))
+
 root = tk.Tk()
 root.geometry('550x320')
 menubar = tk.Menu(root)
@@ -227,8 +262,7 @@ winmenu.add_command(label='Zoom', command=zoom)
 #add menus to pref menu
 prefmenu.add_cascade(label='Font', menu=fontmenu)
 prefmenu.add_command(label='Change background', command=changebg)
-#on delete window quit the app
-root.protocol('WM_DELETE_WINDOW', root.destroy)
+prefmenu.add_command(label='Reset to default settings', command=resetconfig)
 #load configuration
 loadconfig()
 #widgets
@@ -246,7 +280,10 @@ textmenu.add_command(label='Select all', accelerator='cmd+a', command=lambda: ed
 textmenu.add_separator()
 textmenu.add_command(label='Clear', command=lambda: editor.delete(0.0, tk.END))
 textmenu.add_command(label='Random number', command=randomnum)
+textmenu.add_command(label='Reverse text', command=reverse)
+textmenu.add_command(label='Length of text', command=length)
 textmenu.add_command(label='Convert lowercase', command=lowercase)
+textmenu.add_command(label='Convert uppercase', command=uppercase)
 #adding menus to window menu
 menubar.add_cascade(label='File', menu=filemenu)
 menubar.add_cascade(label='Text', menu=textmenu)
@@ -254,5 +291,6 @@ menubar.add_cascade(label='Preferences', menu=prefmenu)
 menubar.add_cascade(label='Window', menu=winmenu)
 #initalize new file
 newfile()
+root.bind('<F10>', fullscreen())
 root.title(filename + ' - disk')
 root.mainloop()
