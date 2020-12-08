@@ -6,11 +6,13 @@ from tkinter.messagebox import askyesno, showerror, askokcancel, showinfo
 from tkinter.colorchooser import askcolor
 from tkinter.font import families
 from configparser import ConfigParser
-from os import path, mkdir, remove
-from getpass import getuser
+from os import path, mkdir, remove, system
 from random import randint
+from sys import platform
+from appdirs import user_data_dir
 
 #variables
+ic = '#fff'
 fs = 12
 fc = '#ffffff'
 bg = '#333333'
@@ -18,24 +20,24 @@ font = 'Menlo'
 zoomed = False
 filename = None
 config = ConfigParser()
-user = getuser()
 
 #make config file and directory if no directory/file 
-if path.isdir('/Users/' + user + '/Library/Application Support/disk') == False:
-  mkdir('/Users/' + user + '/Library/Application Support/disk')
-if path.isfile('/Users/' + user + '/Library/Application Support/disk/config.ini') == False:
-  open('/Users/' + user + '/Library/Application Support/disk/config.ini', mode='w').close()
+if not path.isdir(user_data_dir('disk', 'sertdfyguhi')):
+  mkdir(user_data_dir('disk', 'sertdfyguhi'))
+if not path.isfile(user_data_dir('disk', 'sertdfyguhi') + '/config.ini'):
+  open(user_data_dir('disk', 'sertdfyguhi') + '/config.ini', mode='w').close()
 
 #functions
 def setconfig():
-  config.read('/Users/' + user + '/Library/Application Support/disk/config.ini')
+  config.read(user_data_dir('disk', 'sertdfyguhi') + '/config.ini')
   if not config.has_section('settings'):
     config.add_section('settings')
   config.set('settings', 'fontsize', str(fs))
   config.set('settings', 'fontcolor', fc)
   config.set('settings', 'font', font)
   config.set('settings', 'bg', bg)
-  with open('/Users/' + user + '/Library/Application Support/disk/config.ini', 'w') as file:
+  config.set('settings', 'ic', ic)
+  with open(user_data_dir('disk', 'sertdfyguhi') + '/config.ini', 'w') as file:
     config.write(file)
 
 def loadconfig():
@@ -43,12 +45,14 @@ def loadconfig():
   global fc
   global font
   global bg
-  config.read('/Users/' + user + '/Library/Application Support/disk/config.ini')
+  global ic
+  config.read(user_data_dir('disk', 'sertdfyguhi') + '/config.ini')
   try:
     fontsize = config.get('settings', 'fontsize')
     fc = config.get('settings', 'fontcolor')
     font = config.get('settings', 'font')
     bg = config.get('settings', 'bg')
+    ic = config.get('settings', 'ic')
     fs = int(fontsize)
   except:
     setconfig()
@@ -199,6 +203,14 @@ def copy():
     pass
   root.update()
 
+def changeic():
+  global ic
+  color = askcolor()
+  if not color == (None, None):
+    ic = color[1]
+    editor.config(insertbackground=ic)
+    setconfig()
+
 def paste():
   try:
     clipboard = root.clipboard_get()
@@ -233,6 +245,15 @@ def reverse():
 def length():
   showinfo('Length of text', len(editor.get(1.0, tk.END)))
 
+def terminal():
+  if platform == 'darwin':
+    system('open -a Terminal -n')
+  elif platform == 'win32':
+    system('start cmd')
+  elif platform == 'linux':
+    system('gnome-terminal')
+
+
 root = tk.Tk()
 root.geometry('550x320')
 menubar = tk.Menu(root)
@@ -261,11 +282,12 @@ winmenu.add_command(label='Zoom', command=zoom)
 #add menus to pref menu
 prefmenu.add_cascade(label='Font', menu=fontmenu)
 prefmenu.add_command(label='Change background', command=changebg)
+prefmenu.add_command(label='Chnage insert color', command=changeic)
 prefmenu.add_command(label='Reset to default settings', command=resetconfig)
 #load configuration
 loadconfig()
 #widgets
-editor = tk.Text(master=root, width=1920, height=1080, bg=bg, font=(font, fs), highlightthickness=0, fg=fc, undo=True, insertbackground='#ffffff')
+editor = tk.Text(master=root, width=1920, height=1080, bg=bg, font=(font, fs), highlightthickness=0, fg=fc, undo=True, insertbackground=ic)
 editor.pack()
 #text menu
 textmenu = tk.Menu(menubar)
@@ -283,6 +305,7 @@ textmenu.add_command(label='Reverse text', command=reverse)
 textmenu.add_command(label='Length of text', command=length)
 textmenu.add_command(label='Convert lowercase', command=lowercase)
 textmenu.add_command(label='Convert uppercase', command=uppercase)
+textmenu.add_command(label='New terminal window', command=terminal)
 #adding menus to window menu
 menubar.add_cascade(label='File', menu=filemenu)
 menubar.add_cascade(label='Text', menu=textmenu)
