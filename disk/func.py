@@ -1,6 +1,6 @@
 from sys import platform
 import tkinter as tk
-from tkinter.filedialog import askopenfile, asksaveasfile
+from tkinter.filedialog import askdirectory, askopenfile, askopenfilename, asksaveasfile
 from tkinter.simpledialog import askinteger, askstring
 from tkinter.messagebox import askyesno, showerror, askokcancel, showinfo
 from tkinter.colorchooser import askcolor
@@ -35,6 +35,44 @@ class functions:
       self.s.fs = int(fontsize)
     except:
       self.setconfig()
+
+  def loadTheme(self, path):
+    try:
+      self.s.config.read(path)
+      fontsize = self.s.config.get('settings', 'fontsize') or self.s.fs
+      self.s.fc = self.s.config.get('settings', 'fontcolor') or self.s.fc
+      self.s.font = self.s.config.get('settings', 'font') or self.s.font
+      self.s.bg = self.s.config.get('settings', 'bg') or self.s.bg
+      self.s.ic = self.s.config.get('settings', 'ic') or self.s.ic
+      self.s.fs = int(fontsize)
+      self.s.editor.config(bg=self.s.bg, font=(self.s.font, self.s.fs), fg=self.s.fc, insertbackground=self.s.ic)
+      self.setconfig()
+    except:
+      showerror('Oops.. Something went wrong while loading this theme.')
+
+  def saveTheme(self, path, name):
+    try:
+      themePath = path + '/' + name + '.theme'
+      f = open(themePath, 'w')
+      self.s.config.read(path)
+      self.s.config.set('settings', 'fontsize', str(self.s.fs))
+      self.s.config.set('settings', 'fontcolor', self.s.fc)
+      self.s.config.set('settings', 'font', self.s.font)
+      self.s.config.set('settings', 'bg', self.s.bg)
+      self.s.config.set('settings', 'ic', self.s.ic)
+      self.s.config.write(f)
+      system('open ' + themePath)
+    except:
+      showerror('Oops.. Something went wrong while saving this theme.')
+
+  def themeload(self):
+    f = askopenfilename()
+    self.loadTheme(f)
+
+  def themesave(self):
+    d = askdirectory()
+    name = askstring('Saving theme', 'Please choose a name for your theme.')
+    self.saveTheme(d, name)
 
   def openfile(self):
     self.s.filename = askopenfile(mode='r')
@@ -72,21 +110,22 @@ class functions:
       self.setconfig()
 
   def changefont(self):
-    self.s.font = askstring('Choosing font', 'Type font name in prompt.')
-    if not self.s.font == None:
-      for i in families():
-        if self.s.font == i:
-          self.s.editor.config(font=(self.s.font, self.s.fs))
-      self.setconfig()
+    f = askstring('Choosing font', 'Type font name in prompt. (It is case-sensitive.)')
+    if not f == None:
+      if f in families():
+        self.s.font = f
+        self.s.editor.config(font=(self.s.font, self.s.fs))
+        self.setconfig()
 
   def resetconfig(self):
     yn = askyesno('Reset to default settings', 'Are you sure you want to reset your settings?')
     if yn == True:
-      self.s.fc = '#fff'
-      self.s.fs = '12'
-      self.s.font = 'Menlo'
+      self.s.ic = '#fff'
+      self.s.fs = 12
+      self.s.fc = '#ffffff'
       self.s.bg = '#333333'
-      self.s.editor.config(font=(self.s.font, self.s.fs), fg=self.s.fc, bg=self.s.bg)
+      self.s.font = 'Menlo'
+      self.s.editor.config(font=(self.s.font, self.s.fs), fg=self.s.fc, bg=self.s.bg, insertbackground=self.s.ic)
       self.setconfig()
 
   def savefile(self):

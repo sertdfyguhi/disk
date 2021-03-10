@@ -1,4 +1,8 @@
+from os import system
+import sys
 import tkinter as tk
+from ntpath import basename
+from glob import glob
 
 def menu(self):
   self.menubar = tk.Menu(self.root)
@@ -19,15 +23,24 @@ def menu(self):
   self.fontmenu.add_command(label='Font families', command=self.func.fontfamilies)
   self.fontmenu.add_command(label='Change font size', command=self.func.changefontsize)
   self.fontmenu.add_command(label='Change font color', command=self.func.changefontcolor)
+  #themes menu
+  self.themesmenu = tk.Menu(self.prefmenu)
+  for theme in glob(self.themesPath + '/*.theme'):
+    print(theme)
+    self.themesmenu.add_command(label=basename(theme), command=lambda: self.func.loadTheme(theme))
+  self.themesmenu.add_command(label='Open themes directory', command=lambda: system('open ' + self.themesPath.replace(' ', '\\ ')))
+  #add menus to pref menu
+  self.prefmenu.add_cascade(label='Font', menu=self.fontmenu)
+  self.prefmenu.add_cascade(label='Themes', menu=self.themesmenu)
+  self.prefmenu.add_command(label='Open theme', command=self.func.themeload)
+  self.prefmenu.add_command(label='Save theme', command=self.func.themesave)
+  self.prefmenu.add_command(label='Change background', command=self.func.changebg)
+  self.prefmenu.add_command(label='Change insert color', command=self.func.changeic)
+  self.prefmenu.add_command(label='Reset to default settings', command=self.func.resetconfig)
   #window menu
   self.winmenu = tk.Menu(self.menubar)
   self.winmenu.add_command(label='Minimize', accelerator='cmd+m', command=self.root.iconify)
   self.winmenu.add_command(label='Zoom', command=self.func.zoom)
-  #add menus to pref menu
-  self.prefmenu.add_cascade(label='Font', menu=self.fontmenu)
-  self.prefmenu.add_command(label='Change background', command=self.func.changebg)
-  self.prefmenu.add_command(label='Change insert color', command=self.func.changeic)
-  self.prefmenu.add_command(label='Reset to default settings', command=self.func.resetconfig)
   #text menu
   self.textmenu = tk.Menu(self.menubar)
   self.textmenu.add_command(label='Undo', accelerator='cmd+z', command=self.editor.edit_undo)

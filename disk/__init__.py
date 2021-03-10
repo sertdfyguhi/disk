@@ -2,11 +2,23 @@ import tkinter as tk
 from configparser import ConfigParser
 from .func import functions
 from .menu import menu
-from appdirs import user_data_dir
+from appdirs import user_config_dir, user_data_dir
+from os import path, mkdir
 
 
 class tkWindow:
 	def __init__(self):
+		self.configPath = user_config_dir('disk', 'hdwyx')
+		self.themesPath = user_data_dir('disk_themes', 'hdwyx')
+
+		#make config file and directory if no directory/file 
+		if not path.isdir(self.configPath):
+			mkdir(self.configPath)
+		if not path.isfile(self.configPath + '/config.ini'):
+			open(self.configPath + '/config.ini', mode='w').close()
+		if not path.isdir(self.themesPath):
+			mkdir(self.themesPath)
+
 		self.ic = '#fff'
 		self.fs = 12
 		self.fc = '#ffffff'
@@ -14,7 +26,6 @@ class tkWindow:
 		self.font = 'Menlo'
 		self.zoomed = False
 		self.filename = None
-		self.configPath = user_data_dir('disk', 'hdwyx')
 		self.config = ConfigParser()
 		self.root = tk.Tk()
 		self.root.geometry('550x320')
