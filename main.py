@@ -1,4 +1,4 @@
 import disk
 
-window = disk.tkWindow()
+window = disk.window()
 window.start()

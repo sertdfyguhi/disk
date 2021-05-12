@@ -6,7 +6,7 @@ from appdirs import user_config_dir, user_data_dir
 from os import path, mkdir
 
 
-class tkWindow:
+class window:
 	def __init__(self):
 		self.configPath = user_config_dir('disk', 'hdwyx')
 		self.themesPath = user_data_dir('disk_themes', 'hdwyx')
@@ -35,7 +35,10 @@ class tkWindow:
 		self.editor = tk.Text(master=self.root, width=1920, height=1080, bg=self.bg, font=(self.font, self.fs),
 		highlightthickness=0, fg=self.fc, undo=True, insertbackground=self.ic)
 		self.editor.pack()
-		menu(self)
+		m = menu(self)
+		m.make()
+		self.winmenu.add_command(label='New window', command=lambda: window().start())
+		m.add()
 		self.func.newfile()
 		self.root.title(self.filename + ' - disk')
 

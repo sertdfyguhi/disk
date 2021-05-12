@@ -255,3 +255,10 @@ class functions:
       system('start cmd')
     elif platform == 'linux':
       system('gnome-terminal')
+
+  def word_count(self):
+    text = self.s.editor.get(0.0, tk.END)
+    split = text.split(' ')
+    new = [el for el in split if any(i.lower() in 'abcdefghijklmnopqrstuvwxyz' for i in el)]
+
+    showinfo('Word count', str(len(new)))
