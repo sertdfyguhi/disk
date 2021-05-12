@@ -63,6 +63,10 @@ class menu:
     self.s.textmenu.add_command(label='Word count', command=self.s.func.word_count)
     self.s.textmenu.add_command(label='Convert lowercase', command=self.s.func.lowercase)
     self.s.textmenu.add_command(label='Convert uppercase', command=self.s.func.uppercase)
+    self.s.textmenu.add_command(label='Encode base64', command=self.s.func.enc_b64)
+    self.s.textmenu.add_command(label='Decode base64', command=self.s.func.dec_b64)
+    self.s.textmenu.add_command(label='Encode hex', command=self.s.func.enc_hex)
+    self.s.textmenu.add_command(label='Decode hex', command=self.s.func.dec_hex)
     self.s.textmenu.add_command(label='New terminal window', command=self.s.func.terminal)
     
   def add(self):

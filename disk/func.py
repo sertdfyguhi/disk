@@ -7,10 +7,16 @@ from tkinter.colorchooser import askcolor
 from tkinter.font import families
 from os import remove, system
 from random import randint
+from base64 import b64encode, b64decode
+from binascii import hexlify, unhexlify
 
 class functions:
   def __init__(self, s):
     self.s = s
+
+  def _replace_all(self, text):
+    self.s.editor.delete(0.0, tk.END)
+    self.s.editor.insert(0.0, text)
 
   def setconfig(self):
     self.s.config.read(self.s.configPath + '/config.ini')
@@ -79,8 +85,7 @@ class functions:
     if not self.s.filename == None:
       try:
         text = self.s.filename.read()
-        self.s.editor.delete(0.0, tk.END)
-        self.s.editor.insert(0.0, text)
+        self._replace_all(text)
         self.s.root.title(self.s.filename.name + ' - disk')
       except:
         showerror(title='Error!', message='We cannot read this file, please open another file.')
@@ -148,12 +153,11 @@ class functions:
       text = self.s.editor.get(0.0, tk.END)
       filedir.write(text)
       file = open(filedir.name, 'r')
-      self.s.editor.delete(0.0, tk.END)
-      self.s.editor.insert(0.0, file.read())
+      self._replace_all(file.read())
       self.s.filename = file
       self.s.root.title(self.s.filename.name + ' - disk')
-    except:
-      pass
+    except Exception as e:
+      showerror('Error!', 'Something went wrong while trying to save! \'' + str(e) + '\'')
 
   def fontfamilies(self):
     window = tk.Tk()
@@ -232,18 +236,15 @@ class functions:
 
   def lowercase(self):
     text = self.s.editor.get(0.0, tk.END)
-    self.s.editor.delete(0.0, tk.END)
-    self.s.editor.insert(0.0, text.lower())
+    self._replace_all(text.lower())
 
   def uppercase(self):
     text = self.s.editor.get(0.0, tk.END)
-    self.s.editor.delete(0.0, tk.END)
-    self.s.editor.insert(0.0, text.upper())
+    self._replace_all(text.upper())
 
   def reverse(self):
     rtext = self.s.editor.get(0.0, tk.END)[::-1]
-    self.s.editor.delete(0.0, tk.END)
-    self.s.editor.insert(0.0, rtext.replace('\n', '', 1))
+    self._replace_all(rtext.replace('\n', '', 1))
 
   def length(self):
     showinfo('Length of text', len(self.s.editor.get(0.0, tk.END)) - 1)
@@ -262,3 +263,25 @@ class functions:
     new = [el for el in split if any(i.lower() in 'abcdefghijklmnopqrstuvwxyz' for i in el)]
 
     showinfo('Word count', str(len(new)))
+
+  def enc_b64(self):
+    text = self.s.editor.get(0.0, tk.END)
+    self._replace_all(b64encode(text.encode('ascii')).decode('ascii'))
+
+  def dec_b64(self):
+    text = self.s.editor.get(0.0, tk.END)
+    self._replace_all(b64decode(text.encode('ascii')).decode('ascii'))
+
+  def enc_hex(self):
+    text = self.s.editor.get(0.0, tk.END)
+    try:
+      self._replace_all(hexlify(text.encode('ascii')).decode('ascii'))
+    except Exception as e:
+      showerror('Error!', str(e))
+
+  def dec_hex(self):
+    text = self.s.editor.get(0.0, tk.END)
+    try:
+      self._replace_all(unhexlify(text.encode('ascii')).decode('ascii'))
+    except Exception as e:
+      showerror('Error!', str(e))
